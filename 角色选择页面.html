@@ -51,6 +51,14 @@
             --step3-progress-bottom: 120px;      /* 进度点距离底部距离 */
             --video-overlay-opacity: 0.6;        /* 视频遮罩透明度（越大越暗）*/
             --step3-transition-duration: 0.4s;   /* 过场动画速度 */
+
+            /* === 第四步元素位置配置 === */
+            --step4-bubble-top: 75%;             /* 气泡图片距离顶部位置（越大越靠下）*/
+            --step4-bubble-left: 50%;            /* 气泡图片水平位置（50%为居中）*/
+            --step4-bubble-width: 280px;         /* 气泡图片宽度 */
+            --step4-input-bottom: 80px;          /* 输入窗图片距离底部位置（越大越靠上）*/
+            --step4-input-left: 50%;             /* 输入窗图片水平位置（50%为居中）*/
+            --step4-input-width: 340px;          /* 输入窗图片宽度 */
         }
 
         /* ==================== 全局样式重置 ==================== */
@@ -718,6 +726,80 @@
             transition: opacity 0.3s ease;
         }
 
+        /* ========== 第四步样式 ========== */
+        /* 第四步容器 */
+        .step4-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            z-index: 50;
+        }
+
+        .step4-container.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 气泡图片 */
+        .bubble-image {
+            position: absolute;
+            top: var(--step4-bubble-top);
+            left: var(--step4-bubble-left);
+            transform: translateX(-50%);
+            width: var(--step4-bubble-width);
+            height: auto;
+            z-index: 51;
+            animation: bubbleFloat 0.6s ease-out;
+        }
+
+        /* 气泡浮动动画 */
+        @keyframes bubbleFloat {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(30px) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+            }
+        }
+
+        /* 输入窗图片 */
+        .input-window-image {
+            position: absolute;
+            bottom: var(--step4-input-bottom);
+            left: var(--step4-input-left);
+            transform: translateX(-50%);
+            width: var(--step4-input-width);
+            height: auto;
+            z-index: 51;
+            animation: inputSlideUp 0.5s ease-out 0.2s both;
+        }
+
+        /* 输入窗上滑动画 */
+        @keyframes inputSlideUp {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* 当Step 4激活时，隐藏Step 3 */
+        .phone-container.step4-active .step3-container {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
         /* ========== 响应式设计 - 小屏幕适配 ========== */
         @media (max-width: 400px) {
             .phone-container {
@@ -820,6 +902,12 @@
                     </button>
                 </div>
             </div>
+        </div>
+
+        <!-- 第四步：气泡和输入窗展示 -->
+        <div class="step4-container" id="step4Container">
+            <img src="./创建素材/气泡.png" alt="气泡" class="bubble-image">
+            <img src="./创建素材/输入窗.png" alt="输入窗" class="input-window-image">
         </div>
     </div>
 
@@ -1432,25 +1520,47 @@
         }
 
         // ========== Step 3: 完成第三步函数 ==========
-        // 所有4个问题都回答完后执行
+        // 所有4个问题都回答完后执行，跳转到第四步
         function completeStep3() {
             // 打印所有用户选择到控制台（调试用）
             console.log('所有问题回答完成！', userSelections);
 
-            // 显示完成提示（实际项目中可以跳转到结果页或提交数据）
-            alert(`问题回答完成！\n` +
-                  `角色：${userSelections.character.name}\n` +
-                  `昵称：${userSelections.nickname}\n` +
-                  `音色：音色${userSelections.voice}\n` +
-                  `问题答案：\n` +
-                  `Q1: ${userSelections.step3Answers.q1}\n` +
-                  `Q2: ${userSelections.step3Answers.q2}\n` +
-                  `Q3: ${userSelections.step3Answers.q3}\n` +
-                  `Q4: ${userSelections.step3Answers.q4}`);
-
             // 触发振动反馈（完成的振动模式）
             if (navigator.vibrate) {
                 navigator.vibrate([50, 100, 50]);
+            }
+
+            // 跳转到第四步
+            goToStep4();
+        }
+
+        // ========== Step 4: 进入第四步函数 ==========
+        // 从Step 3过渡到Step 4，显示气泡和输入窗
+        function goToStep4() {
+            // 更新当前步骤
+            currentStep = 4;
+
+            // 获取所有需要操作的元素
+            const phoneContainer = document.querySelector('.phone-container');
+            const step3Container = document.getElementById('step3Container');
+            const step4Container = document.getElementById('step4Container');
+
+            // Step 3淡出
+            step3Container.style.transition = 'opacity 0.5s ease';
+            step3Container.style.opacity = '0';
+            step3Container.style.pointerEvents = 'none';
+
+            // 添加Step 4激活class到容器
+            phoneContainer.classList.add('step4-active');
+
+            // 延迟300ms后显示Step 4
+            setTimeout(() => {
+                step4Container.classList.add('active');
+            }, 300);
+
+            // 触发振动反馈
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
             }
         }
 
